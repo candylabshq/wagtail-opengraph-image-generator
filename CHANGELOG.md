@@ -1,3 +1,3 @@
-# 0.0.1 (tbd)
+# 1.0.0
 
 - Initial release

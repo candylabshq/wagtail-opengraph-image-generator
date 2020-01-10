@@ -34,7 +34,7 @@ Finally, apply the migrations with `python manage.py migrate`
 
 Once the addon is installed, you will notice a new tab in your edit/create view.
 
-![The injected new tab](docs/images/edit_view.png)
+![The injected new tab](https://raw.githubusercontent.com/candylabshq/wagtail-opengraph-image-generator/master/docs/images/edit_view.png)
 
 This new panel will allow you to preview your new Open Graph image before you save it.
 Depending on your exact configuration this panel will provide slightly different options and customizations.
@@ -56,7 +56,7 @@ Accessing the generated image is done with an image tag. Make sure to load it in
 
 ## Documentation
 
-For more information on getting started, an overview of all available settings and release notes, please see [our documentation on Read the Docs](docs/index.md).
+For more information on getting started, an overview of all available settings and release notes, please see [our documentation on Read the Docs](https://wagtail-opengraph-image-generator.readthedocs.io/en/latest/).
 
 ## Support
 
