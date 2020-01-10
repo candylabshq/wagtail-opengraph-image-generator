@@ -2,7 +2,7 @@ default_app_config = (
     'wagtail_opengraph_image_generator.apps.WagtailOGImageGeneratorConfig'
 )
 
-VERSION = (0, 0, 1, 'dev')
+VERSION = (1, 0, 0, 'final')
 
 
 def get_version():
