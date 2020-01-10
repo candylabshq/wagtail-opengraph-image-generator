@@ -1,0 +1,14 @@
+site_name: Wagtail OG Generator Documentation
+
+theme: readthedocs
+
+markdown_extensions:
+  - markdown_include.include:
+      base_path: docs
+  - toc:
+      permalink: True
+
+nav:
+  - index.md
+  - configuration.md
+  - release_notes.md

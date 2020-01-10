@@ -1,0 +1,64 @@
+{% include "wagtailadmin/edit_handlers/object_list.html" %}
+
+{% load wagtail_opengraph_image_generator_tags wagtailimages_tags %}
+
+<style>
+.og-field {
+    display: block;
+    float: none;
+    width: 100%;
+}
+
+img.og-preview {
+    display: block; 
+    max-width: 600px;
+    max-height: 315px;
+    margin-top: 1rem;
+}
+
+div.og-preview-placeholder {
+    display: block;
+    width: 600px;
+    height: 315px;
+    border: 1px dotted #333;
+    margin-top: 1rem;
+    box-sizing: border-box;
+}
+</style>
+
+{% get_existing_og_image self.instance as og_img %}
+{% get_og_image_generator_setting 'CREATE_AUTOMATICALLY' as CREATE_AUTOMATICALLY %}
+
+{% if og_img %}
+    <div class="nice-padding">
+        <h2>Current image</h2>
+
+        {% image og_img width-600 %}
+    </div>
+
+    <hr>
+{% endif %}
+
+<div class="nice-padding">
+    <h2>Preview &amp; save new image</h2>
+
+    {% if CREATE_AUTOMATICALLY %}
+        <p>Since you have <code>WAGTAIL_OG_GENERATOR_CREATE_AUTOMATICALLY</code> set to <code>True</code>, a new image will be created and saved automatically when you save this page.</p>
+    {% endif %}
+
+    <label class="og-field">
+        <input type="checkbox" id="id_og_dark_variant" name="og_dark_variant" value="dark"> Use dark variant
+    </label>
+
+    <p>Please click the button to generate a preview of your OpenGraph image for this page.</p>
+    <p>Saving a new image will overwrite any existing image.</p>
+    <button class="button" id="btnCreateOGPreview">Generate OpenGraph preview</button>
+    
+    <div class="og-preview-placeholder"></div>
+
+    {% if not CREATE_AUTOMATICALLY %}
+        <label class="og-field" style="display: none;">
+            <input type="checkbox" id="id_og_save" name="og_save"> Save this image
+        </label>
+    {% endif %}
+</div>
