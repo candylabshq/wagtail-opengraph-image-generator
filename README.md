@@ -54,6 +54,17 @@ Accessing the generated image is done with an image tag. Make sure to load it in
 {% endif %}
 ```
 
+## Examples
+
+A basic example with a default background image and company logo might look like this:
+
+![Basic image example](https://raw.githubusercontent.com/candylabshq/wagtail-opengraph-image-generator/master/docs/images/basic_image_example.png)
+
+A more advanced example with dynamic background image and page logo fields might look like this:
+
+![Full image example](https://raw.githubusercontent.com/candylabshq/wagtail-opengraph-image-generator/master/docs/images/full_image_example.png)
+
+
 ## Documentation
 
 For more information on getting started, an overview of all available settings and release notes, please see [our documentation on Read the Docs](https://wagtail-opengraph-image-generator.readthedocs.io/en/latest/).
