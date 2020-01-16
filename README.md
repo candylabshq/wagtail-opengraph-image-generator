@@ -56,11 +56,11 @@ Accessing the generated image is done with an image tag. Make sure to load it in
 
 ## Examples
 
-A basic example with a default background image and company logo might look like this:
+A basic example with a default background image, company logo and subtitle might look like this:
 
 ![Basic image example](https://raw.githubusercontent.com/candylabshq/wagtail-opengraph-image-generator/master/docs/images/basic_image_example.png)
 
-A more advanced example with dynamic background image and page logo fields might look like this:
+A more advanced example with additional background and page logo fields might look like this:
 
 ![Full image example](https://raw.githubusercontent.com/candylabshq/wagtail-opengraph-image-generator/master/docs/images/full_image_example.png)
 
