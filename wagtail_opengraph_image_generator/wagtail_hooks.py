@@ -17,12 +17,18 @@ class OpenGraphTemplateTab(ObjectList):
 
 @hooks.register('before_edit_page')
 @hooks.register('before_create_page')
-def add_og_tab(request, page):
+def add_og_tab(request, page, page_class=None):
     if not isinstance(page, get_page_model()):
         return
 
     tab = OpenGraphTemplateTab([], heading=setting('TAB_NAME'))
-    children = page.get_edit_handler().children
+
+    # page_class is passed to the function when a new page is created
+    if page_class:
+        children = page_class.get_edit_handler().children
+    else:
+        children = page.get_edit_handler().children
+
     exists = False
     for child in children:
         if child.heading == tab.heading:

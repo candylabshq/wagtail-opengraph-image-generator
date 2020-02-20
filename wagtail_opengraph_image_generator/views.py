@@ -11,6 +11,9 @@ from .generator import create_og_image
 
 @csrf_exempt
 def show_preview(request, page_id):
-    page = get_page_model().objects.get(pk=page_id)
-    buf = create_og_image(request, page.specific, True, request.POST)
+    if page_id > 0:
+        page = get_page_model().objects.get(pk=page_id).specific
+    else:
+        page = None
+    buf = create_og_image(request, page, True, request.POST)
     return HttpResponse(base64.b64encode(buf.getvalue()), content_type='text/plain')

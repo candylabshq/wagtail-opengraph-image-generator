@@ -140,7 +140,7 @@ def create_og_image(request, page, browser_output=False, extra_data={}):
         )
     else:
         curY = TEXT_START_Y - get_font_height(
-            font_bold, extra_data.get('title', page.title)
+            font_bold, extra_data.get('title', page.title if page else '')
         )
 
     # Convert optional page SVG icon to PNG and add it to the canvas
@@ -162,11 +162,14 @@ def create_og_image(request, page, browser_output=False, extra_data={}):
     # Draw the page title
     drawable.text(
         (TEXT_START_X, curY),
-        extra_data.get('title', page.title),
+        extra_data.get('title', page.title if page else ''),
         font=font_bold,
         fill=color,
     )
-    curY += get_font_height(font_bold, extra_data.get('title', page.title)) + 4
+    curY += (
+        get_font_height(font_bold, extra_data.get('title', page.title if page else ''))
+        + 4
+    )
 
     # Draw the subtitle lines
     if og_text_lines:
@@ -176,7 +179,7 @@ def create_og_image(request, page, browser_output=False, extra_data={}):
             curY += get_font_height(font_regular, line)
 
     # Create image
-    og_file_name = 'og_{}.png'.format(page.slug)
+    og_file_name = 'og_{}.png'.format(page.slug if page else 'preview')
     buf = BytesIO()
     og_canvas.save(buf, format='PNG')
     buf.seek(0)
