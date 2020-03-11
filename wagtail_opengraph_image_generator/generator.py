@@ -3,6 +3,7 @@ import html
 from io import BytesIO
 from PIL import Image, ImageDraw, ImageFont, ImageOps
 from cairosvg import svg2png
+from base64 import urlsafe_b64encode
 
 from django.utils.html import strip_tags
 from django.core.files.uploadedfile import InMemoryUploadedFile
@@ -38,9 +39,8 @@ def create_og_image(request, page, browser_output=False, extra_data={}):
     og_generator_settings = OpenGraphImageGeneratorSettings.for_site(request.site)
 
     if og_generator_settings.default_background_image:
-        og_default_bg_image = Image.open(
-            og_generator_settings.default_background_image.file.path
-        )
+        with og_generator_settings.default_background_image.get_willow_image() as img:
+            og_default_bg_image = img.get_pillow_image()
     else:
         og_default_bg_image = None
 
@@ -64,9 +64,8 @@ def create_og_image(request, page, browser_output=False, extra_data={}):
     overlay_type = extra_data.get('variant', 'light')
     if overlay_type == 'dark':
         if og_generator_settings.company_logo_alternative:
-            company_logo = Image.open(
-                og_generator_settings.company_logo_alternative.file.path
-            )
+            with og_generator_settings.company_logo_alternative.get_willow_image() as img:
+                company_logo = img.get_pillow_image()
         else:
             company_logo = None
         fade = Image.open(
@@ -77,7 +76,8 @@ def create_og_image(request, page, browser_output=False, extra_data={}):
         color = COLOR_WHITE
     else:
         if og_generator_settings.company_logo:
-            company_logo = Image.open(og_generator_settings.company_logo.file.path)
+            with og_generator_settings.company_logo.get_willow_image() as img:
+                company_logo = img.get_pillow_image()
         else:
             company_logo = None
         fade = Image.open(
@@ -94,11 +94,15 @@ def create_og_image(request, page, browser_output=False, extra_data={}):
     preview_header_image = extra_data.get('background_image', None)
     og_bg_image = None
     if preview_header_image:
-        og_bg_image = Image.open(WagtailImage.objects.get(pk=preview_header_image).file)
+        with WagtailImage.objects.get(
+            pk=preview_header_image
+        ).get_willow_image() as img:
+            og_bg_image = img.get_pillow_image()
     else:
         page_background_image = getattr(page, setting('FIELD_BACKGROUND_IMAGE'), None)
         if page_background_image and browser_output is False:
-            og_bg_image = Image.open(page_background_image.file.path)
+            with page_background_image.get_willow_image() as img:
+                og_bg_image = img.get_pillow_image()
         else:
             og_bg_image = og_default_bg_image
 
@@ -179,7 +183,11 @@ def create_og_image(request, page, browser_output=False, extra_data={}):
             curY += get_font_height(font_regular, line)
 
     # Create image
-    og_file_name = 'og_{}.png'.format(page.slug if page else 'preview')
+    # Append random string to avoid S3 CDN cache issues
+    og_file_name = 'og_{}_{}.png'.format(
+        page.slug if page else 'preview',
+        urlsafe_b64encode(os.urandom(6)).decode('utf-8'),
+    )
     buf = BytesIO()
     og_canvas.save(buf, format='PNG')
     buf.seek(0)
