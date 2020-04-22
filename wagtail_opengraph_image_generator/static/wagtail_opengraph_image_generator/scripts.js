@@ -1,7 +1,7 @@
 $(document).ready(() => {
     const previewBtn = $('#btnCreateOGPreview')
     const defaultBtnText = previewBtn.text()
-    previewBtn.on('click', e => {
+    previewBtn.on('click', (e) => {
         e.preventDefault()
         previewBtn.text(`${defaultBtnText} ...`).attr('disabled', true)
 
@@ -19,7 +19,11 @@ $(document).ready(() => {
         $.post(
             url,
             {
-                title: $('#id_title').val(),
+                title: $(`#id_${OG_FIELD_TITLE}`)
+                    .parent()
+                    .find('.public-DraftEditor-content')
+                    .html(),
+                default_title: $('#id_title').val(),
                 subtitle: $(`#id_${OG_FIELD_SUBTITLE}`)
                     .parent()
                     .find('.public-DraftEditor-content')
@@ -30,7 +34,7 @@ $(document).ready(() => {
                     ? 'dark'
                     : 'light',
             },
-            data => {
+            (data) => {
                 $('img.og-preview, div.og-preview-placeholder').remove()
                 $('label.og-field:last-of-type').show()
                 $(
@@ -38,6 +42,10 @@ $(document).ready(() => {
                 ).insertAfter(previewBtn)
                 previewBtn.text(defaultBtnText).attr('disabled', false)
             }
-        )
+        ).fail((error) => {
+            previewBtn
+                .text('Something went wrong. Try again.')
+                .attr('disabled', false)
+        })
     })
 })

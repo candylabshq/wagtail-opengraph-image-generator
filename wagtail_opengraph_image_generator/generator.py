@@ -9,12 +9,27 @@ from django.utils.html import strip_tags
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.templatetags.static import static
 
+from wagtail.core import hooks
 from wagtail.core.models import Collection
 from wagtail.images.models import Image as WagtailImage
 from wagtail.documents.models import Document
 
 from .conf import setting
 from .models import OpenGraphImageGeneratorSettings
+
+
+OG_WIDTH = setting('IMAGE_WIDTH')
+OG_HEIGHT = setting('IMAGE_HEIGHT')
+OG_PADDING = setting('IMAGE_PADDING')
+
+TEXT_START_X = OG_PADDING
+TEXT_START_Y = OG_HEIGHT - OG_PADDING
+COLOR_WHITE = (255, 255, 255, 255)
+COLOR_BLACK = (0, 0, 0, 255)
+
+
+def get_font_width(font, text):
+    return font.getsize(text)[0]
 
 
 def get_font_height(font, text):
@@ -24,16 +39,9 @@ def get_font_height(font, text):
     return total_line_height
 
 
-def create_og_image(request, page, browser_output=False, extra_data={}):
-    OG_WIDTH = setting('IMAGE_WIDTH')
-    OG_HEIGHT = setting('IMAGE_HEIGHT')
-    OG_PADDING = setting('IMAGE_PADDING')
-
-    TEXT_START_X = OG_PADDING
-    TEXT_START_Y = OG_HEIGHT - OG_PADDING
-    COLOR_WHITE = (255, 255, 255, 255)
-    COLOR_BLACK = (0, 0, 0, 255)
-
+def create_default_og_image(
+    request, page, browser_output, extra_data, canvas, drawable
+):
     folder = os.path.dirname(os.path.dirname(__file__))
 
     og_generator_settings = OpenGraphImageGeneratorSettings.for_site(request.site)
@@ -87,8 +95,6 @@ def create_og_image(request, page, browser_output=False, extra_data={}):
         )
         color = COLOR_BLACK
 
-    og_canvas = Image.new('RGB', (OG_WIDTH, OG_HEIGHT))
-
     # Add background image & company logo to the canvas
     fade = fade.resize((OG_WIDTH, OG_HEIGHT))
     preview_header_image = extra_data.get('background_image', None)
@@ -108,17 +114,33 @@ def create_og_image(request, page, browser_output=False, extra_data={}):
 
     if og_bg_image:
         og_bg_image = ImageOps.fit(og_bg_image, (OG_WIDTH, OG_HEIGHT), Image.ANTIALIAS)
-        og_canvas.paste(og_bg_image, (0, 0))
-        og_canvas.paste(fade, (0, 0), fade)
+        canvas.paste(og_bg_image, (0, 0))
+        canvas.paste(fade, (0, 0), fade)
     else:
         if color == COLOR_BLACK:
-            og_canvas.paste(COLOR_WHITE, [0, 0, OG_WIDTH, OG_HEIGHT])
+            canvas.paste(COLOR_WHITE, [0, 0, OG_WIDTH, OG_HEIGHT])
         elif color == COLOR_WHITE:
-            og_canvas.paste(COLOR_BLACK, [0, 0, OG_WIDTH, OG_HEIGHT])
+            canvas.paste(COLOR_BLACK, [0, 0, OG_WIDTH, OG_HEIGHT])
     if company_logo:
-        og_canvas.paste(company_logo, (OG_PADDING, OG_PADDING), company_logo)
+        canvas.paste(company_logo, (OG_PADDING, OG_PADDING), company_logo)
 
-    drawable = ImageDraw.Draw(og_canvas)
+    # Prepare title lines to see where start drawing stuff
+    preview_title = extra_data.get('title', None)
+    if preview_title:
+        og_title_lines = preview_title.split('</span></span></div></div>')
+    else:
+        title_field = getattr(page, setting('FIELD_TITLE'), None)
+        if title_field and browser_output is False:
+            og_title_lines = title_field.split('</p><p>')
+        else:
+            og_title_lines = None
+    if og_title_lines:
+        og_title_lines = list(
+            filter(None, map(lambda x: strip_tags(x), og_title_lines))
+        )
+        num_title_lines = len(og_title_lines)
+    else:
+        num_title_lines = 0
 
     # Prepare subtitle lines to see where we start drawing stuff
     preview_text = extra_data.get('subtitle', None)
@@ -130,7 +152,6 @@ def create_og_image(request, page, browser_output=False, extra_data={}):
             og_text_lines = subtitle_field.split('</p><p>')
         else:
             og_text_lines = None
-
     if og_text_lines:
         og_text_lines = list(filter(None, map(lambda x: strip_tags(x), og_text_lines)))
         num_lines = len(og_text_lines)
@@ -138,14 +159,16 @@ def create_og_image(request, page, browser_output=False, extra_data={}):
         num_lines = 0
 
     # Calculate font sizes to correctly ascertain starting position
-    if num_lines > 0:
-        curY = TEXT_START_Y - (
-            get_font_height(font_regular, og_text_lines[0]) * (num_lines + 1)
-        )
+    if num_title_lines > 0:
+        title_height = get_font_height(font_bold, og_title_lines[0]) * (num_title_lines)
     else:
-        curY = TEXT_START_Y - get_font_height(
-            font_bold, extra_data.get('title', page.title if page else '')
+        title_height = get_font_height(
+            font_bold, extra_data.get('default_title', page.title if page else '')
         )
+    curY = TEXT_START_Y - title_height
+
+    if num_lines > 0:
+        curY -= get_font_height(font_regular, og_text_lines[0]) * (num_lines)
 
     # Convert optional page SVG icon to PNG and add it to the canvas
     logo_file = None
@@ -160,20 +183,28 @@ def create_og_image(request, page, browser_output=False, extra_data={}):
         png_icon_str = svg2png(file_obj=logo_file)
         png_icon = Image.open(BytesIO(png_icon_str))
         curY -= png_icon.height
-        og_canvas.paste(png_icon, (OG_PADDING, curY), png_icon)
+        canvas.paste(png_icon, (OG_PADDING, curY), png_icon)
         curY += png_icon.height + 8
 
     # Draw the page title
-    drawable.text(
-        (TEXT_START_X, curY),
-        extra_data.get('title', page.title if page else ''),
-        font=font_bold,
-        fill=color,
-    )
-    curY += (
-        get_font_height(font_bold, extra_data.get('title', page.title if page else ''))
-        + 4
-    )
+    if og_title_lines:
+        for line in og_title_lines:
+            line = html.unescape(line)
+            drawable.text((TEXT_START_X, curY), line, font=font_bold, fill=color)
+            curY += get_font_height(font_bold, line)
+    else:
+        drawable.text(
+            (TEXT_START_X, curY),
+            extra_data.get('default_title', page.title if page else ''),
+            font=font_bold,
+            fill=color,
+        )
+        curY += (
+            get_font_height(
+                font_bold, extra_data.get('default_title', page.title if page else '')
+            )
+            + 4
+        )
 
     # Draw the subtitle lines
     if og_text_lines:
@@ -182,6 +213,25 @@ def create_og_image(request, page, browser_output=False, extra_data={}):
             drawable.text((TEXT_START_X, curY), line, font=font_regular, fill=color)
             curY += get_font_height(font_regular, line)
 
+    return canvas
+
+
+def create_og_image(request, page, browser_output=False, extra_data={}):
+    # Set up canvas and drawable
+    canvas = Image.new('RGB', (OG_WIDTH, OG_HEIGHT))
+    drawable = ImageDraw.Draw(canvas)
+
+    # Delegate creation to a custom hook function if there is one registered
+    custom_hook = hooks.get_hooks('wagtail_opengraph_image_generator_generation')
+    if custom_hook:
+        canvas = custom_hook[-1](
+            request, page, browser_output, extra_data, canvas, drawable
+        )
+    else:
+        canvas = create_default_og_image(
+            request, page, browser_output, extra_data, canvas, drawable
+        )
+
     # Create image
     # Append random string to avoid S3 CDN cache issues
     og_file_name = 'og_{}_{}.png'.format(
@@ -189,7 +239,7 @@ def create_og_image(request, page, browser_output=False, extra_data={}):
         urlsafe_b64encode(os.urandom(6)).decode('utf-8'),
     )
     buf = BytesIO()
-    og_canvas.save(buf, format='PNG')
+    canvas.save(buf, format='PNG')
     buf.seek(0)
 
     if browser_output:

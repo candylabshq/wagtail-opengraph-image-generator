@@ -13,6 +13,7 @@ DEFAULT_SETTINGS = {
     'TAB_NAME': 'OpenGraph Image',
     'PAGE_MODEL': 'wagtailcore.Page',
     'CREATE_AUTOMATICALLY': True,
+    'FIELD_TITLE': '',
     'FIELD_SUBTITLE': '',
     'FIELD_BACKGROUND_IMAGE': '',
     'FIELD_LOGO': '',
