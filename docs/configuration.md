@@ -63,6 +63,7 @@ If your page model includes additional fields, you can use the following setting
 Note: The `LOGO` field expects a SVG file, so basically a foreign key to a `wagtaildocs.Document` with valid SVG data.
 
 ```python
+WAGTAIL_OG_GENERATOR_FIELD_TITLE = ''
 WAGTAIL_OG_GENERATOR_FIELD_SUBTITLE = ''
 WAGTAIL_OG_GENERATOR_FIELD_BACKGROUND_IMAGE = ''
 WAGTAIL_OG_GENERATOR_FIELD_LOGO = ''

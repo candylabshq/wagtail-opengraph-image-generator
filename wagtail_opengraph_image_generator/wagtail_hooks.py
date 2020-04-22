@@ -62,11 +62,13 @@ def add_og_js():
     str_js = format_html(
         '''
         <script>
+            const OG_FIELD_TITLE = '{}'
             const OG_FIELD_SUBTITLE = '{}'
             const OG_FIELD_BACKGROUND_IMAGE = '{}'
             const OG_FIELD_LOGO = '{}'
         </script>
     '''.format(
+            setting('FIELD_TITLE'),
             setting('FIELD_SUBTITLE'),
             setting('FIELD_BACKGROUND_IMAGE'),
             setting('FIELD_LOGO'),
