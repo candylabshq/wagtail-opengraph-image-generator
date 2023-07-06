@@ -15,9 +15,9 @@ The final image will be saved in the PNG format in a configurable Wagtail collec
 
 ## Requirements
 
-* Python 3.6+
-* Wagtail 2.7 LTS or Wagtail 2.8
-* Django 2.2 LTS or Django 3.0
+* Python 3.7+
+* Wagtail 4
+* Django 3.0+
 * `wagtail.contrib.settings` in `INSTALLED_APPS`
 
 _Other versions might work but have not been tested._

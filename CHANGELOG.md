@@ -1,3 +1,7 @@
+# 2.0
+- Compatibility with Wagtail 4.1 LTS and Django 4.1
+- Dropped support for Python 3.6 
+
 # 1.1
 
 - New: Added custom hook `wagtail_opengraph_image_generator_generation` for total control of the image generation process
