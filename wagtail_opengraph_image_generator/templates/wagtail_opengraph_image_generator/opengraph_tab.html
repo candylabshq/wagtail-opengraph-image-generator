@@ -1,4 +1,4 @@
-{% include "wagtailadmin/edit_handlers/object_list.html" %}
+{% include "wagtailadmin/panels/object_list.html" %}
 
 {% load wagtail_opengraph_image_generator_tags wagtailimages_tags %}
 
@@ -30,7 +30,7 @@ div.og-preview-placeholder {
 {% get_og_image_generator_setting 'CREATE_AUTOMATICALLY' as CREATE_AUTOMATICALLY %}
 
 {% if og_img %}
-    <div class="nice-padding">
+    <div>
         <h2>Current image</h2>
 
         {% image og_img width-600 %}
@@ -39,7 +39,7 @@ div.og-preview-placeholder {
     <hr>
 {% endif %}
 
-<div class="nice-padding">
+<div>
     <h2>Preview &amp; save new image</h2>
 
     {% if CREATE_AUTOMATICALLY %}
@@ -50,8 +50,11 @@ div.og-preview-placeholder {
         <input type="checkbox" id="id_og_dark_variant" name="og_dark_variant" value="dark"> Use dark variant
     </label>
 
-    <p>Please click the button to generate a preview of your OpenGraph image for this page.</p>
-    <p>Saving a new image will overwrite any existing image.</p>
+    <p style="margin-top: 1rem;">
+        Please click the button to generate a preview of your OpenGraph image for this page.<br/>
+        Saving a new image will overwrite any existing image.
+    </p>
+
     <button class="button" id="btnCreateOGPreview">Generate OpenGraph preview</button>
     
     <div class="og-preview-placeholder"></div>

@@ -3,7 +3,7 @@ import base64
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 
-from wagtail.core.models import Page
+from wagtail.models import Page
 
 from .conf import get_page_model
 from .generator import create_og_image

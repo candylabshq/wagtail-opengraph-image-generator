@@ -9,8 +9,8 @@ from django.utils.html import strip_tags
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.templatetags.static import static
 
-from wagtail.core import hooks
-from wagtail.core.models import Collection
+from wagtail import hooks
+from wagtail.models import Collection
 from wagtail.images import get_image_model
 from wagtail.documents.models import Document
 

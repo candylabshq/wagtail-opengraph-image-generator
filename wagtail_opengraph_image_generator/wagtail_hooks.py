@@ -3,8 +3,9 @@ from django.urls import path
 from django.utils.html import format_html
 from django.templatetags.static import static
 
-from wagtail.core import hooks
-from wagtail.admin.edit_handlers import FieldPanel, ObjectList
+from wagtail import hooks
+from wagtail.admin.panels import ObjectList, extract_panel_definitions_from_model_class, HelpPanel
+from wagtail.utils.decorators import cached_classmethod
 
 from .conf import setting, get_page_model
 from .generator import create_og_image
@@ -15,26 +16,23 @@ class OpenGraphTemplateTab(ObjectList):
     template = 'wagtail_opengraph_image_generator/opengraph_tab.html'
 
 
-@hooks.register('before_edit_page')
-@hooks.register('before_create_page')
-def add_og_tab(request, page, page_class=None):
-    if not isinstance(page, get_page_model()):
-        return
-
-    tab = OpenGraphTemplateTab([], heading=setting('TAB_NAME'))
-
-    # page_class is passed to the function when a new page is created
-    if page_class:
-        children = page_class.get_edit_handler().children
+@cached_classmethod
+def get_edit_handler(cls):
+    if hasattr(cls, "edit_handler"):
+        edit_handler = cls.edit_handler
     else:
-        children = page.get_edit_handler().children
+        panels = extract_panel_definitions_from_model_class(cls)
+        edit_handler = ObjectList(panels)
 
-    exists = False
-    for child in children:
-        if child.heading == tab.heading:
-            exists = True
-    if not exists:
-        children.append(tab)
+    tab = OpenGraphTemplateTab(
+        [HelpPanel(template="wagtail_opengraph_image_generator/opengraph_tab.html")], heading=setting('TAB_NAME')
+    )
+    edit_handler.children.append(tab)
+
+    return edit_handler.bind_to_model(cls)
+
+
+get_page_model().get_edit_handler = get_edit_handler
 
 
 @hooks.register('after_edit_page')
@@ -75,9 +73,7 @@ def add_og_js():
         )
     )
     return str_js + format_html(
-        '<script src="{}"></script>'.format(
-            static('wagtail_opengraph_image_generator/scripts.js')
-        )
+        '<script src="{}"></script>'.format(static('wagtail_opengraph_image_generator/scripts.js'))
     )
 
 

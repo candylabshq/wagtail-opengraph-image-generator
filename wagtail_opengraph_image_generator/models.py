@@ -2,7 +2,7 @@ from django.db import models
 
 from wagtail.images import get_image_model_string
 from wagtail.contrib.settings.models import BaseSetting, register_setting
-from wagtail.images.edit_handlers import ImageChooserPanel
+from wagtail.admin.panels import FieldPanel
 
 from .conf import get_page_model
 
@@ -55,7 +55,7 @@ class OpenGraphImageGeneratorSettings(BaseSetting):
     )
 
     panels = [
-        ImageChooserPanel('default_background_image'),
-        ImageChooserPanel('company_logo'),
-        ImageChooserPanel('company_logo_alternative'),
+        FieldPanel('default_background_image'),
+        FieldPanel('company_logo'),
+        FieldPanel('company_logo_alternative'),
     ]
