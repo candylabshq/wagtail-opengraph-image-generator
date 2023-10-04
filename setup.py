@@ -26,7 +26,7 @@ setuptools.setup(
     install_requires=[
         "wagtail>=4.0,<5.0",
         "CairoSVG==2.7.0",
-        "Pillow==9.5.0",
+        "Pillow==10.0.1",
     ],
     tests_require=[
         "pytest",
